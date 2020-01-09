@@ -1,5 +1,5 @@
 // functions
-// 1. Init socket
+// 1. Init ws
 // 2. Get market value
 // 3. Get user status
 // TBD. orderer
@@ -7,30 +7,25 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-
-	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 func main() {
-	url := "wss://www.bitmex.com/realtime"
-	var dialer = websocket.DefaultDialer
-	c, res, err := dialer.Dial(url, nil)
+	url := "https://testnet.bitmex.com/api/v1"
+	resp, err := http.Get(url)
 	if nil != err {
-		panic(err)
+		panic(err.Error())
 	}
-	defer c.Close()
 
-	fmt.Println(res.Body)
-	err = c.WriteJSON("{\"op\": \"announcement\", \"args\": []}")
-	if nil != err {
-		panic(err)
-	}
-	t, msg, err := c.ReadMessage()
-	if nil != err {
-		panic(err)
-	}
-	fmt.Println(t)
-	fmt.Println(string(msg))
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	newStr := buf.String()
+
+	fmt.Printf(newStr)
+}
+
+func getQuote() {
 
 }
