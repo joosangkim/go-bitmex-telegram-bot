@@ -1,0 +1,59 @@
+// functions
+// 1. Init socket
+// 2. Get market value
+// 3. Get user status
+// TBD. orderer
+
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/gorilla/websocket"
+)
+
+func main() {
+	url := "wss://www.bitmex.com/realtime"
+	var dialer = websocket.DefaultDialer
+	c, _, err := dialer.Dial(url, nil)
+	if nil != err {
+		panic(err)
+	}
+	defer c.Close()
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		for {
+			_, message, err := c.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				return
+			}
+			log.Printf("recv: %s", message)
+		}
+	}()
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-done:
+			return
+		case t := <-ticker.C:
+			fmt.Println(t)
+			err = c.WriteJSON("{\"op\": \"help\", \"args\": []}")
+			if nil != err {
+				panic(err)
+			}
+			if err != nil {
+				log.Println("write:", err)
+				return
+			}
+		}
+	}
+}

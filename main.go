@@ -1,5 +1,5 @@
 // functions
-// 1. Init ws
+// 1. Init socket
 // 2. Get market value
 // 3. Get user status
 // TBD. orderer
@@ -10,22 +10,25 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 func main() {
-	url := "https://testnet.bitmex.com/api/v1"
-	resp, err := http.Get(url)
+	u := url.URL{
+		Scheme: "https",
+		Host:   "testnet.bitmex.com",
+		Path:   "api/v1",
+	}
+	fmt.Println(u.String() + "/wallet")
+	resp, err := http.Get(u.String() + "/user/wallet")
 	if nil != err {
 		panic(err.Error())
 	}
-
+	fmt.Println(u.String())
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 	newStr := buf.String()
 
 	fmt.Printf(newStr)
-}
-
-func getQuote() {
 
 }
