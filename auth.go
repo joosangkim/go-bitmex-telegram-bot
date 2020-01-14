@@ -19,17 +19,33 @@ import (
 )
 
 // auth _
-func auth(req *http.Request, key, verb, path, data, secret string) { //(string key, secret) {
+func SetAuthHeader(req *http.Request, key, method, path, query, data, secret string) *http.Request { //(string key, secret) {
 	// unix timestamp + key  + secret
 	expire := time.Now().Add(time.Minute * 5).Unix()
 	req.Header.Add("api-expires", strconv.FormatInt(expire, 10))
 	req.Header.Add("api-key", key)
-	h := hmac.New(sha256.New, []byte(secret))
-	h.Write([]byte(verb + path + strconv.FormatInt(expire, 10) + data))
-	req.Header.Add("api-signature", hex.EncodeToString(h.Sum(nil)))
+	sign := signature(key, method, path, query, strconv.FormatInt(expire, 10), data)
+	req.Header.Add("api-signature", sign)
 	// DebugHttpRequest(req)
-	return
+	return req
+}
 
+// signature _
+func signature(secret, method, path, query, nonce, bodyStr string) string {
+	msg := ""
+	if "" == query {
+		msg = strings.ToUpper(method) + path + nonce + bodyStr
+	} else {
+		msg = strings.ToUpper(method) + path + "?" + query + nonce + bodyStr
+	}
+	return calcMsg(secret, msg)
+}
+
+// calcMsg _
+func calcMsg(secret, msg string) string {
+	sig := hmac.New(sha256.New, []byte(secret))
+	sig.Write([]byte(msg))
+	return hex.EncodeToString(sig.Sum(nil))
 }
 
 func DebugHttpRequest(r *http.Request) {
@@ -38,20 +54,4 @@ func DebugHttpRequest(r *http.Request) {
 		fmt.Println(err)
 	}
 	fmt.Println(string(requestDump))
-}
-
-func Signature(apiSecret, method, path, query, nonce, bodyStr string) string {
-	str := ""
-	if "" == query {
-		str = strings.ToUpper(method) + path + nonce + bodyStr
-	} else {
-		str = strings.ToUpper(method) + path + "?" + query + nonce + bodyStr
-	}
-	return CalSignature(apiSecret, str)
-}
-
-func CalSignature(apiSecret, payload string) string {
-	sig := hmac.New(sha256.New, []byte(apiSecret))
-	sig.Write([]byte(payload))
-	return hex.EncodeToString(sig.Sum(nil))
 }

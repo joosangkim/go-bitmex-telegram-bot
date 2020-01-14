@@ -13,13 +13,17 @@ import (
 	"net/url"
 )
 
+var u = url.URL{
+	Scheme: "https",
+	Host:   "testnet.bitmex.com",
+	Path:   "api/v1",
+}
+
 func main() {
-	u := url.URL{
-		Scheme: "https",
-		Host:   "testnet.bitmex.com",
-		Path:   "api/v1",
-	}
-	client := http.Client{}
+	// init bot
+
+	client := NewClient()
+	req, err := NewRequest()
 	req, err := http.NewRequest("GET", u.String()+"/user/wallet", nil)
 	if nil != err {
 		panic(err.Error())
@@ -43,5 +47,9 @@ func main() {
 	newStr := buf.String()
 
 	fmt.Printf(newStr)
+
+}
+
+func GetUserRequest() {
 
 }
