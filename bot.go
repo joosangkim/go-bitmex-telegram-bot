@@ -7,15 +7,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func SetBot() {
-	bot, err := tgbotapi.NewBotAPI("MyAwesomeBotToken")
+	key := ""
+	if k, ok := os.LookupEnv("BOT_API"); ok {
+		key = k
+	}
+
+	bot, err := tgbotapi.NewBotAPI(key)
 	if err != nil {
 		log.Fatal(err)
 	}
+	bot.Debug = true
+
+	fmt.Println(bot.Self.String())
 
 }
